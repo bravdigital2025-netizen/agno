@@ -1,0 +1,785 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Argamassa Alphaville — IA ao Vivo</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    background: #0D1117;
+    color: #E6EDF3;
+    display: flex;
+    min-height: 100vh;
+  }
+  .sidebar {
+    width: 260px;
+    min-width: 260px;
+    background: #161B22;
+    border-right: 1px solid #30363D;
+    display: flex;
+    flex-direction: column;
+    padding: 24px 14px;
+  }
+  .logo { font-size: 20px; font-weight: 800; color: #F59E0B; margin-bottom: 2px; }
+  .logo-sub { font-size: 12px; color: #7D8590; margin-bottom: 20px; }
+  .section-label {
+    font-size: 11px; font-weight: 700; color: #7D8590;
+    text-transform: uppercase; letter-spacing: 1px; padding: 14px 8px 6px;
+  }
+  .nav-btn {
+    width: 100%; background: transparent; border: 1px solid transparent;
+    border-radius: 8px; padding: 11px 12px; color: #C9D1D9;
+    text-align: left; cursor: pointer; margin-bottom: 3px;
+    transition: all 0.2s; font-size: 13px; line-height: 1.4;
+  }
+  .nav-btn:hover { background: #21262D; border-color: #30363D; }
+  .nav-btn.active { background: #1C2416; border-color: #F59E0B; color: #F59E0B; }
+  .btn-title { font-weight: 600; display: block; }
+  .btn-sub { font-size: 11px; color: #7D8590; margin-top: 1px; display: block; }
+  .nav-btn.active .btn-sub { color: #9E7B1F; }
+  .powered { margin-top: auto; font-size: 11px; color: #484F58; text-align: center; padding-top: 20px; }
+  .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+  .header {
+    background: linear-gradient(135deg, #161B22, #0D1117);
+    border-bottom: 1px solid #21262D;
+    padding: 20px 28px; display: flex; align-items: center; gap: 14px;
+  }
+  .header-icon { font-size: 32px; }
+  .header-title { font-size: 20px; font-weight: 700; color: #F59E0B; }
+  .header-desc { font-size: 13px; color: #7D8590; margin-top: 2px; }
+  .content { flex: 1; overflow-y: auto; padding: 28px; }
+  .demo-panel { display: none; }
+  .demo-panel.visible { display: block; }
+  .typing-container {
+    background: #161B22; border: 1px solid #30363D;
+    border-radius: 12px; padding: 28px 32px; position: relative; overflow: hidden;
+  }
+  .typing-container::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+    background: linear-gradient(90deg, #F59E0B, #EF4444, #3B82F6, #F59E0B);
+    background-size: 200%;
+    animation: shimmer 2s linear infinite;
+  }
+  @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+  .typing-text { font-size: 14.5px; line-height: 1.8; color: #E6EDF3; }
+  .typing-text h1, .typing-text h2 { color: #F59E0B; margin: 18px 0 8px; font-size: 17px; }
+  .typing-text h3 { color: #C9D1D9; margin: 14px 0 6px; font-size: 14px; }
+  .typing-text strong { color: #79C0FF; }
+  .typing-text ul { padding-left: 20px; margin: 6px 0; }
+  .typing-text li { margin: 5px 0; color: #C9D1D9; }
+  .typing-text blockquote {
+    border-left: 3px solid #F59E0B; padding: 10px 16px; margin: 10px 0;
+    background: #21262D; border-radius: 0 8px 8px 0; color: #C9D1D9; font-style: italic;
+  }
+  .typing-text hr { border: none; border-top: 1px solid #30363D; margin: 18px 0; }
+  .typing-text p { margin: 7px 0; color: #C9D1D9; }
+  .status-badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: #1C2A1C; border: 1px solid #2EA043; border-radius: 20px;
+    padding: 4px 12px; font-size: 12px; color: #3FB950; margin-bottom: 18px;
+  }
+  .dot { width: 6px; height: 6px; border-radius: 50%; background: #3FB950; animation: pulse 1.5s ease infinite; }
+  @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+  .step-badge {
+    display: flex; align-items: center; gap: 10px; padding: 9px 14px;
+    border-left: 3px solid #F59E0B; background: #21262D; border-radius: 0 8px 8px 0;
+    margin-bottom: 10px; font-size: 13px; font-weight: 600; color: #C9D1D9;
+  }
+  .check { color: #3FB950; }
+  .welcome { display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 50px 20px; gap: 18px; }
+  .welcome h1 { font-size: 28px; font-weight: 800; color: #F59E0B; }
+  .welcome p { font-size: 15px; color: #7D8590; max-width: 480px; line-height: 1.6; }
+  .cards-row { display: flex; gap: 14px; margin-top: 10px; flex-wrap: wrap; justify-content: center; }
+  .card-chip { background: #161B22; border: 1px solid #30363D; border-radius: 10px; padding: 14px 22px; font-size: 13px; color: #C9D1D9; }
+  .card-chip strong { color: #F59E0B; display: block; margin-bottom: 3px; }
+  ::-webkit-scrollbar { width: 5px; }
+  ::-webkit-scrollbar-track { background: #0D1117; }
+  ::-webkit-scrollbar-thumb { background: #30363D; border-radius: 3px; }
+</style>
+</head>
+<body>
+
+<div class="sidebar">
+  <div class="logo">🏗️ Alphaville IA</div>
+  <div class="logo-sub">Demonstração ao Vivo</div>
+  <div class="section-label">⚡ Comercial</div>
+  <button class="nav-btn" onclick="show('prospect', this)">
+    <span class="btn-title">🎯 Perfil de Prospect</span>
+    <span class="btn-sub">Analisa qualquer construtora em segundos</span>
+  </button>
+  <button class="nav-btn" onclick="show('pipeline', this)">
+    <span class="btn-title">🔄 Pipeline Completo</span>
+    <span class="btn-sub">3 agentes: Pesquisa → Análise → Proposta</span>
+  </button>
+  <button class="nav-btn" onclick="show('objecao', this)">
+    <span class="btn-title">💬 Tratar Objeção de Preço</span>
+    <span class="btn-sub">Respostas prontas para o representante</span>
+  </button>
+  <div class="section-label">📱 Marketing Digital</div>
+  <button class="nav-btn" onclick="show('instagram', this)">
+    <span class="btn-title">📸 Post para Instagram</span>
+    <span class="btn-sub">Legenda, hashtags e direção de arte</span>
+  </button>
+  <button class="nav-btn" onclick="show('cadencia', this)">
+    <span class="btn-title">📲 Cadência de WhatsApp</span>
+    <span class="btn-sub">5 mensagens prontas de follow-up</span>
+  </button>
+  <button class="nav-btn" onclick="show('conteudo', this)">
+    <span class="btn-title">📅 Plano de Conteúdo</span>
+    <span class="btn-sub">Calendário editorial 2 semanas</span>
+  </button>
+  <div class="powered">Powered by Claude AI + Agno Framework</div>
+</div>
+
+<div class="main">
+  <div class="header" id="header">
+    <div class="header-icon">🏗️</div>
+    <div>
+      <div class="header-title">Argamassa Alphaville — IA ao Vivo</div>
+      <div class="header-desc">Escolha uma demonstração no menu ao lado</div>
+    </div>
+  </div>
+  <div class="content">
+
+    <div class="demo-panel visible" id="panel-welcome">
+      <div class="welcome">
+        <div style="font-size:60px">🏗️</div>
+        <h1>Bem-vindo à Demo</h1>
+        <p>Escolha qualquer botão no menu para ver a IA executando tarefas reais para a Argamassa Alphaville.</p>
+        <div class="cards-row">
+          <div class="card-chip"><strong>⚡ Comercial</strong>Prospect · Pipeline · Objeção</div>
+          <div class="card-chip"><strong>📱 Marketing</strong>Instagram · WhatsApp · Calendário</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="demo-panel" id="panel-prospect">
+      <div class="status-badge"><div class="dot"></div> IA executando ao vivo</div>
+      <div class="typing-container"><div class="typing-text"><h1>PERFIL COMERCIAL | Construtora Horizonte</h1>
+<h2>📊 SEGMENTO</h2>
+<strong>Construção Civil — Incorporadora/Construtora</strong>
+<ul><li>Nicho: Condomínios residenciais médio padrão</li>
+<li>Escala: Múltiplas obras simultâneas (regional SP)</li>
+<li>Localização: Alphaville e Cotia — área de atuação natural da Argamassa Alphaville</li>
+</ul>
+<hr>
+<h2>🎯 PRODUTO INDICADO</h2>
+<strong>Argamassas Especializadas para Controle de Fissuras</strong>
+<ul><li>Argamassa polimérica anti-fissuração</li>
+<li>Revestimento com aditivos estabilizadores</li>
+<li>Solução integrada: chapisco + emboço + reboco</li>
+</ul>
+<hr>
+<h2>💔 DOR PRINCIPAL</h2>
+| Problema | Impacto |
+|----------|--------|
+| <strong>Fissuramento em obras recentes</strong> | Retrabalho, custo adicional, imagem afetada |
+| Garantia comprometida | Risco de reparos pós-entrega |
+| Fornecedor atual inadequado | Revisão urgente de cadeia de suprimentos |
+<hr>
+<h2>🔓 GANCHO DE ABERTURA</h2>
+<blockquote><em>"Vi que vocês tiveram fissuramento em obras recentes. Isso é comum quando a argamassa não tem os aditivos certos para a umidade e clima de Alphaville. A Argamassa Alphaville desenvolve soluções específicas para essa região — já resolvemos isso para construtoras similares, com redução de 70% em reclamações pós-obra."</em></blockquote>
+<hr>
+<h2>➡️ PRÓXIMOS PASSOS</h2>
+<ul><li>1. <strong>Reunião Técnica</strong> — Avaliar obras afetadas + especificar solução</li>
+<li>2. <strong>Amostra + Teste</strong> — Validar em pequena área (chapisco/emboço)</li>
+<li>3. <strong>Proposta Comercial</strong> — Preço competitivo + cronograma de fornecimento</li>
+<li>4. <strong>Parceria Contínua</strong> — Suporte em todas as obras (Alphaville/Cotia)</li>
+</ul>
+<hr>
+<strong>Status:</strong> 🔴 <strong>OPORTUNIDADE QUENTE</strong> — Janela de decisão aberta (revisão de fornecedores)</div></div>
+    </div>
+
+    <div class="demo-panel" id="panel-pipeline">
+      <div class="status-badge"><div class="dot"></div> 3 agentes trabalhando em sequência</div>
+      <div class="step-badge"><span class="check">✓</span> Etapa 1 de 3 — Pesquisa Concluída</div>
+      <div class="step-badge"><span class="check">✓</span> Etapa 2 de 3 — Análise Concluída</div>
+      <div class="step-badge"><span class="check">✓</span> Etapa 3 de 3 — Proposta Pronta</div>
+      <div style="height:14px"></div>
+      <div class="typing-container"><div class="typing-text"><h1>📱 Post Instagram — Argamassa Alphaville</h1>
+<hr>
+<h2>🎨 DIREÇÃO DE ARTE</h2>
+<h3>Formato</h3>
+<blockquote><strong>Feed — Carrossel com 5 slides</strong> (1080 x 1080px)</blockquote>
+<hr>
+<h3>🖼️ Slide 1 — CAPA (Impacto Visual)</h3>
+<strong>Imagem:</strong>
+Foto em close dramático de uma parede perfeita, lisa, sem nenhuma fissura — com iluminação lateral suave que evidencia a superfície impecável. No canto inferior, uma textura sutil de argamassa sendo aplicada com desfocanho (bokeh).
+<strong>Texto sobreposto:</strong>
+```
+🔴 HEADLINE PRINCIPAL:
+<p>"Fim das Rachaduras
+no seu Condomínio."</p>
+<p>Subtítulo menor:
+Argamassa Alphaville — Tecnologia que protege.
+```</p>
+<strong>Paleta de cores:</strong>
+<ul><li>Fundo escuro (cinza chumbo #2C2C2C)</li>
+<li>Tipografia branca bold</li>
+<li>Detalhe em laranja/âmbar (#E8820C) — cor de marca</li>
+</ul>
+<hr>
+<h3>🖼️ Slide 2 — O PROBLEMA</h3>
+<strong>Imagem:</strong>
+Split screen: lado esquerdo com foto real de parede fissurada em condomínio (tom frio, desgastado); lado direito totalmente liso e íntegro (tom quente, novo).
+<strong>Texto sobreposto:</strong>
+```
+❌  O fissuramento custa caro.
+<ul><li>Desvaloriza o imóvel</li>
+<li>Infiltra umidade</li>
+<li>Gera reclamações de moradores</li>
+<li>Aumenta o custo de manutenção</li>
+</ul>
+Você ainda convive com esse problema?
+```
+<hr>
+<h3>🖼️ Slide 3 — A SOLUÇÃO</h3>
+<strong>Imagem:</strong>
+Pedreiro profissional aplicando argamassa com desempenadeira — foto limpa, bem iluminada, ângulo 45°. Sacos de Argamassa Alphaville empilhados ao fundo, levemente desfocados.
+<strong>Texto sobreposto:</strong>
+```
+✅  Argamassa Alphaville tem:
+<p>🔬 Aditivos antifissura de última geração
+💧 Alta resistência à variação de temperatura
+🧱 Aderência superior em alvenaria e concreto
+⏱️ Cura acelerada sem perda de flexibilidade
+```</p>
+<hr>
+<h3>🖼️ Slide 4 — PROVA SOCIAL / DADO TÉCNICO</h3>
+<strong>Imagem:</strong>
+Infográfico clean sobre fundo branco com elementos gráficos em laranja e cinza.
+<strong>Elementos gráficos:</strong>
+```
+📊 NÚMEROS QUE FALAM:
+<p>[BIG NUMBER]  87%
+Redução de ocorrências de fissuras
+em projetos que utilizam Alphaville*</p>
+<p>[BIG NUMBER]  +15 anos
+de durabilidade comprovada</p>
+<p>[BIG NUMBER]  3x
+mais flexível que argamassas convencionais</p>
+<p>*Dados baseados em laudos técnicos internos.
+```</p>
+<hr>
+<h3>🖼️ Slide 5 — CTA (Chamada para Ação)</h3>
+<strong>Imagem:</strong>
+Foto aérea/drone de condomínio moderno, fachada impecável, jardins bem cuidados. Overlay escuro com 40% de opacidade.
+<strong>Texto sobreposto:</strong>
+```
+🏗️ Seu condomínio merece o melhor.
+<p>Fale agora com um especialista
+e solicite seu orçamento gratuito.</p>
+<p>👇
+[BOTÃO VISUAL]
+"Chamar no WhatsApp"</p>
+<p>📍 @argamassaalphaville
+🌐 www.argamassaalphaville.com.br
+```</p>
+<hr>
+<h2>✍️ LEGENDA DO POST</h2>
+<p>```
+🧱 Condomínio com rachadura é sinônimo de problema, custo e dor de cabeça.</p>
+<p>Fissuras nas paredes não são apenas estéticas — elas abrem caminho 
+para a umidade, comprometem a estrutura e desvalorizam cada m² 
+do seu empreendimento.</p>
+<p>A boa notícia? Isso tem solução. ✅</p>
+<p>A Argamassa Alphaville foi desenvolvida com tecnologia antifissura 
+de última geração, garantindo:</p>
+<p>🔹 Flexibilidade para absorver variações térmicas
+🔹 Alta aderência em qualquer tipo de substrato
+🔹 Resistência superior à umidade e ao tempo
+🔹 Acabamento perfeito — da primeira à última camada</p>
+<p>Seja na construção nova ou na reforma, ela foi feita para quem 
+não aceita comprometer a qualidade da entrega. 🏆</p>
+<p>📲 Arrasta para o lado e descubra por que mais de [X] condomínios 
+já confiam na Alphaville para manter suas paredes intactas.</p>
+<p>👇 Comente "ORÇAMENTO" e nosso time entra em contato agora mesmo!</p>
+<p>—
+🌐 Link na bio para mais informações
+📞 (XX) XXXX-XXXX | WhatsApp disponível
+```</p>
+<hr>
+<h2>#️⃣ BLOCO DE HASHTAGS</h2>
+<p>```
+#ArgamassaAlphaville #FimDasFissuras #CondominioSemRachaduras 
+#ArgamassaProfissional #ConstruçãoCivil #ReformadeCondominio 
+#GestaoCondominial #SindicosProfissionais #Sindico 
+#MercadoImobiliário #ConstrutoraBrasil #Incorporadora 
+#QualidadeNaConstrução #TecnologiaDeConstrução #Argamassa 
+#RevestimentoDeParede #ObraComQualidade #EngenhariaCivil 
+#ArquiteturaEConstrução #DicasDeObra #CondominioBrasil 
+#Alphaville #FachadadaEdificação #ManutençãoCondominial 
+#ConstruçãoSustentável
+```</p>
+<hr>
+<h2>📌 NOTAS ESTRATÉGICAS PARA O TIME</h2>
+<p>| Item | Recomendação |
+|---|---|
+| <strong>Melhor horário para postar</strong> | Terça a quinta, das 11h às 13h ou das 19h às 21h |
+| <strong>Stories de apoio</strong> | Adicionar enquete: <em>"Seu condomínio tem problema de fissuras?"</em> |
+| <strong>Reels complementar</strong> | Gravar vídeo de 15s mostrando a aplicação e o resultado final |
+| <strong>Impulsionamento</strong> | Segmentar para: síndicos, engenheiros civis, construtoras, gestores prediais |
+| <strong>Resposta nos comentários</strong> | Fixar resposta padrão com link do WhatsApp para quem comentar "ORÇAMENTO" |</p>
+<hr>
+<blockquote>💡 <strong>Dica criativa:</strong> Considere criar uma versão em <strong>Reels</strong> com o antes e depois da parede em transição rápida (efeito <em>swipe</em> ou <em>zoom in</em>) — esse formato tende a ter alcance orgânico muito maior no atual algoritmo do Instagram.</blockquote></div></div>
+    </div>
+
+    <div class="demo-panel" id="panel-objecao">
+      <div class="status-badge"><div class="dot"></div> IA executando ao vivo</div>
+      <div class="typing-container"><div class="typing-text"><h1>3 Respostas para Objeção de Preço do Eng. Marcos</h1>
+<hr>
+<h2>🔵 Resposta 1 — Abordagem: <strong>Custo Total x Preço de Compra</strong></h2>
+<blockquote><em>Redireciona o foco do preço inicial para o custo ao longo da obra</em></blockquote>
+<hr>
+<strong>Texto pronto para o representante:</strong>
+<blockquote><em>"Eng. Marcos, entendo perfeitamente sua preocupação, e vou ser direto com o senhor. O que o concorrente cobra a menos na nota fiscal, muitas vezes o senhor paga o dobro durante a execução. Vamos colocar no papel juntos: vida útil do produto, consumo por m², índice de retrabalho e prazo de entrega. Na construção civil, o que compromete o orçamento não é o preço da compra — é o custo da escolha errada. Me dá 10 minutos e eu mostro isso com números reais de obras similares à sua."</em></blockquote>
+<hr>
+<h2>🟠 Resposta 2 — Abordagem: <strong>Prova Social e Risco</strong></h2>
+<blockquote><em>Usa cases reais e transfere o risco da decisão ao concorrente</em></blockquote>
+<hr>
+<strong>Texto pronto para o representante:</strong>
+<blockquote><em>"Eng. Marcos, respeito muito sua responsabilidade nessa decisão. Por isso preciso te contar que a obra [mencionar obra conhecida da região] fez exatamente essa escolha pelo preço mais baixo e enfrentou [problema específico: atraso, retrabalho, não conformidade]. O senhor vai justificar R$ X a menos na compra ou vai preferir justificar que escolheu o produto com histórico comprovado, assistência técnica garantida e zero registro de falha nas últimas [X] obras que atendemos? A pergunta que vale é: qual das duas justificativas é mais fácil de dar ao seu cliente?"</em></blockquote>
+<hr>
+<h2>🟢 Resposta 3 — Abordagem: <strong>Negociação Estratégica com Ancoragem de Valor</strong></h2>
+<blockquote><em>Não briga pelo preço — cria condições que tornam a diferença irrelevante</em></blockquote>
+<hr>
+<strong>Texto pronto para o representante:</strong>
+<blockquote><em>"Eng. Marcos, o senhor tem razão, existe uma diferença de preço — e eu não vou esconder isso. O que eu quero propor é o seguinte: me diz exatamente quanto o concorrente está cobrando e qual é o volume da sua necessidade. Porque dependendo do projeto, eu consigo estruturar uma condição que elimina essa diferença — seja em prazo de pagamento, bonificação por volume ou suporte técnico incluso que o concorrente vai cobrar separado. O preço do concorrente é o que está na proposta dele, ou já é o preço final negociado? Porque se for proposta inicial, o senhor ainda não viu o preço real."</em></blockquote>
+<hr>
+<h2>💡 Dica Bônus para o Representante</h2>
+<p>| Situação | Melhor Resposta |
+|---|---|
+| Cliente foca em planilha de custos | Resposta 1 |
+| Cliente tem medo de errar / cargo em risco | Resposta 2 |
+| Cliente está em negociação ativa com concorrente | Resposta 3 |</p>
+<blockquote>⚠️ <strong>Regra de ouro:</strong> Nunca diga <em>"nosso produto é melhor"</em> sem provar com números, cases ou demonstração. Na engenharia, dado supera argumento.</blockquote></div></div>
+    </div>
+
+    <div class="demo-panel" id="panel-instagram">
+      <div class="status-badge"><div class="dot"></div> IA executando ao vivo</div>
+      <div class="typing-container"><div class="typing-text"><h1>📱 Post Instagram — Argamassa Alphaville</h1>
+<hr>
+<h2>🎨 DIREÇÃO DE ARTE</h2>
+<h3>Formato</h3>
+<blockquote><strong>Feed — Carrossel com 5 slides</strong> (1080 x 1080px)</blockquote>
+<hr>
+<h3>🖼️ Slide 1 — CAPA (Impacto Visual)</h3>
+<strong>Imagem:</strong>
+Foto em close dramático de uma parede perfeita, lisa, sem nenhuma fissura — com iluminação lateral suave que evidencia a superfície impecável. No canto inferior, uma textura sutil de argamassa sendo aplicada com desfocanho (bokeh).
+<strong>Texto sobreposto:</strong>
+```
+🔴 HEADLINE PRINCIPAL:
+<p>"Fim das Rachaduras
+no seu Condomínio."</p>
+<p>Subtítulo menor:
+Argamassa Alphaville — Tecnologia que protege.
+```</p>
+<strong>Paleta de cores:</strong>
+<ul><li>Fundo escuro (cinza chumbo #2C2C2C)</li>
+<li>Tipografia branca bold</li>
+<li>Detalhe em laranja/âmbar (#E8820C) — cor de marca</li>
+</ul>
+<hr>
+<h3>🖼️ Slide 2 — O PROBLEMA</h3>
+<strong>Imagem:</strong>
+Split screen: lado esquerdo com foto real de parede fissurada em condomínio (tom frio, desgastado); lado direito totalmente liso e íntegro (tom quente, novo).
+<strong>Texto sobreposto:</strong>
+```
+❌  O fissuramento custa caro.
+<ul><li>Desvaloriza o imóvel</li>
+<li>Infiltra umidade</li>
+<li>Gera reclamações de moradores</li>
+<li>Aumenta o custo de manutenção</li>
+</ul>
+Você ainda convive com esse problema?
+```
+<hr>
+<h3>🖼️ Slide 3 — A SOLUÇÃO</h3>
+<strong>Imagem:</strong>
+Pedreiro profissional aplicando argamassa com desempenadeira — foto limpa, bem iluminada, ângulo 45°. Sacos de Argamassa Alphaville empilhados ao fundo, levemente desfocados.
+<strong>Texto sobreposto:</strong>
+```
+✅  Argamassa Alphaville tem:
+<p>🔬 Aditivos antifissura de última geração
+💧 Alta resistência à variação de temperatura
+🧱 Aderência superior em alvenaria e concreto
+⏱️ Cura acelerada sem perda de flexibilidade
+```</p>
+<hr>
+<h3>🖼️ Slide 4 — PROVA SOCIAL / DADO TÉCNICO</h3>
+<strong>Imagem:</strong>
+Infográfico clean sobre fundo branco com elementos gráficos em laranja e cinza.
+<strong>Elementos gráficos:</strong>
+```
+📊 NÚMEROS QUE FALAM:
+<p>[BIG NUMBER]  87%
+Redução de ocorrências de fissuras
+em projetos que utilizam Alphaville*</p>
+<p>[BIG NUMBER]  +15 anos
+de durabilidade comprovada</p>
+<p>[BIG NUMBER]  3x
+mais flexível que argamassas convencionais</p>
+<p>*Dados baseados em laudos técnicos internos.
+```</p>
+<hr>
+<h3>🖼️ Slide 5 — CTA (Chamada para Ação)</h3>
+<strong>Imagem:</strong>
+Foto aérea/drone de condomínio moderno, fachada impecável, jardins bem cuidados. Overlay escuro com 40% de opacidade.
+<strong>Texto sobreposto:</strong>
+```
+🏗️ Seu condomínio merece o melhor.
+<p>Fale agora com um especialista
+e solicite seu orçamento gratuito.</p>
+<p>👇
+[BOTÃO VISUAL]
+"Chamar no WhatsApp"</p>
+<p>📍 @argamassaalphaville
+🌐 www.argamassaalphaville.com.br
+```</p>
+<hr>
+<h2>✍️ LEGENDA DO POST</h2>
+<p>```
+🧱 Condomínio com rachadura é sinônimo de problema, custo e dor de cabeça.</p>
+<p>Fissuras nas paredes não são apenas estéticas — elas abrem caminho 
+para a umidade, comprometem a estrutura e desvalorizam cada m² 
+do seu empreendimento.</p>
+<p>A boa notícia? Isso tem solução. ✅</p>
+<p>A Argamassa Alphaville foi desenvolvida com tecnologia antifissura 
+de última geração, garantindo:</p>
+<p>🔹 Flexibilidade para absorver variações térmicas
+🔹 Alta aderência em qualquer tipo de substrato
+🔹 Resistência superior à umidade e ao tempo
+🔹 Acabamento perfeito — da primeira à última camada</p>
+<p>Seja na construção nova ou na reforma, ela foi feita para quem 
+não aceita comprometer a qualidade da entrega. 🏆</p>
+<p>📲 Arrasta para o lado e descubra por que mais de [X] condomínios 
+já confiam na Alphaville para manter suas paredes intactas.</p>
+<p>👇 Comente "ORÇAMENTO" e nosso time entra em contato agora mesmo!</p>
+<p>—
+🌐 Link na bio para mais informações
+📞 (XX) XXXX-XXXX | WhatsApp disponível
+```</p>
+<hr>
+<h2>#️⃣ BLOCO DE HASHTAGS</h2>
+<p>```
+#ArgamassaAlphaville #FimDasFissuras #CondominioSemRachaduras 
+#ArgamassaProfissional #ConstruçãoCivil #ReformadeCondominio 
+#GestaoCondominial #SindicosProfissionais #Sindico 
+#MercadoImobiliário #ConstrutoraBrasil #Incorporadora 
+#QualidadeNaConstrução #TecnologiaDeConstrução #Argamassa 
+#RevestimentoDeParede #ObraComQualidade #EngenhariaCivil 
+#ArquiteturaEConstrução #DicasDeObra #CondominioBrasil 
+#Alphaville #FachadadaEdificação #ManutençãoCondominial 
+#ConstruçãoSustentável
+```</p>
+<hr>
+<h2>📌 NOTAS ESTRATÉGICAS PARA O TIME</h2>
+<p>| Item | Recomendação |
+|---|---|
+| <strong>Melhor horário para postar</strong> | Terça a quinta, das 11h às 13h ou das 19h às 21h |
+| <strong>Stories de apoio</strong> | Adicionar enquete: <em>"Seu condomínio tem problema de fissuras?"</em> |
+| <strong>Reels complementar</strong> | Gravar vídeo de 15s mostrando a aplicação e o resultado final |
+| <strong>Impulsionamento</strong> | Segmentar para: síndicos, engenheiros civis, construtoras, gestores prediais |
+| <strong>Resposta nos comentários</strong> | Fixar resposta padrão com link do WhatsApp para quem comentar "ORÇAMENTO" |</p>
+<hr>
+<blockquote>💡 <strong>Dica criativa:</strong> Considere criar uma versão em <strong>Reels</strong> com o antes e depois da parede em transição rápida (efeito <em>swipe</em> ou <em>zoom in</em>) — esse formato tende a ter alcance orgânico muito maior no atual algoritmo do Instagram.</blockquote></div></div>
+    </div>
+
+    <div class="demo-panel" id="panel-cadencia">
+      <div class="status-badge"><div class="dot"></div> IA executando ao vivo</div>
+      <div class="typing-container"><div class="typing-text"><h1>📋 Cadência de Follow-Up B2B — Construtora Horizonte</h1>
+<strong>Decisor:</strong> Eng. Marcos Ferreira
+<strong>Objetivo:</strong> Avançar para reunião/proposta após primeiro contato
+<hr>
+<h2>🗓️ Visão Geral da Cadência</h2>
+<p>| Touchpoint | Timing | Canal | Objetivo |
+|---|---|---|---|
+| TP1 | Dia 1 (após contato) | E-mail | Consolidar interesse |
+| TP2 | Dia 3 | WhatsApp | Gerar resposta rápida |
+| TP3 | Dia 7 | E-mail | Agregar valor técnico |
+| TP4 | Dia 12 | Ligação | Avançar na decisão |
+| TP5 | Dia 18 | E-mail | Breakup / última tentativa |</p>
+<hr>
+<h2>✉️ TOUCHPOINT 1 — Dia 1 | E-mail</h2>
+<strong>Assunto:</strong> `[Construtora Horizonte] Próximos passos — como posso ajudar, Eng. Marcos`
+<hr>
+<blockquote>Eng. Marcos, boa tarde!</blockquote>
+>
+<blockquote>Foi um prazer falar com você hoje. Conforme conversamos, estou enviando um <strong>resumo rápido</strong> do que apresentei e os próximos passos sugeridos.</blockquote>
+>
+<blockquote><strong>O que discutimos:</strong></blockquote>
+<blockquote>- [Insira o principal desafio mencionado pelo cliente]</blockquote>
+<blockquote>- [Insira a solução/produto que foi apresentado]</blockquote>
+>
+<blockquote><strong>O que proponho como próximo passo:</strong></blockquote>
+<blockquote>Uma conversa de 30 minutos para entender melhor os projetos em andamento da Construtora Horizonte e verificar onde podemos gerar mais resultado para a sua equipe.</blockquote>
+>
+<blockquote>📅 Tenho disponibilidade <strong>terça ou quinta</strong>, em qualquer horário que preferir.</blockquote>
+>
+<blockquote>Caso queira já adiantar alguma informação, fico à disposição.</blockquote>
+>
+<blockquote>Abraço,</blockquote>
+<blockquote><strong>[Seu nome]</strong></blockquote>
+<blockquote><strong>[Cargo | Empresa]</strong></blockquote>
+<blockquote><strong>[Telefone/WhatsApp]</strong></blockquote>
+<hr>
+<h2>💬 TOUCHPOINT 2 — Dia 3 | WhatsApp</h2>
+<strong>Tom:</strong> Direto, leve, sem pressão
+<hr>
+<blockquote>Bom dia, Eng. Marcos! Aqui é o <strong>[seu nome]</strong>, da <strong>[sua empresa]</strong>.</blockquote>
+>
+<blockquote>Enviei um e-mail na última <strong>[dia da semana]</strong> sobre como podemos apoiar os projetos da Construtora Horizonte.</blockquote>
+>
+<blockquote>Queria saber se chegou a dar uma olhada. 👍</blockquote>
+>
+<blockquote>Se preferir, posso resumir aqui mesmo em 2 linhas. É só falar!</blockquote>
+<hr>
+<h2>✉️ TOUCHPOINT 3 — Dia 7 | E-mail</h2>
+<strong>Assunto:</strong> `Caso real: como a [Construtora X] reduziu custos em 18% na fase de estrutura`
+<blockquote><em>(Use um case real do seu portfólio ou adapte com dados do setor)</em></blockquote>
+<hr>
+<blockquote>Eng. Marcos, tudo bem?</blockquote>
+>
+<blockquote>Sei que a agenda de um engenheiro responsável por obra é intensa, por isso vou direto ao ponto.</blockquote>
+>
+<blockquote>Recentemente, ajudamos a <strong>Construtora [Nome]</strong> — que enfrenta desafios parecidos com os da Horizonte — a:</blockquote>
+>
+<blockquote>✅ Reduzir <strong>18% nos custos</strong> de [etapa específica da obra]</blockquote>
+<blockquote>✅ Diminuir retrabalho em <strong>[X%]</strong> na fase de [etapa]</blockquote>
+<blockquote>✅ Cumprir o cronograma com <strong>15 dias de antecedência</strong> no último empreendimento</blockquote>
+>
+<blockquote>O que fizemos foi simples: [descreva brevemente a solução aplicada em 1-2 frases].</blockquote>
+>
+<blockquote>Acredito que podemos replicar algo semelhante na Construtora Horizonte.</blockquote>
+>
+<blockquote>📎 Anexei um <strong>material técnico resumido</strong> para sua análise.</blockquote>
+>
+<blockquote>Vale uma conversa de 30 minutos essa semana, Eng. Marcos?</blockquote>
+>
+<blockquote>Abraço,</blockquote>
+<blockquote><strong>[Seu nome | Empresa | Contato]</strong></blockquote>
+<hr>
+<h2>📞 TOUCHPOINT 4 — Dia 12 | Ligação</h2>
+<strong>Objetivo:</strong> Avançar para proposta ou reunião técnica
+<h3>🗣️ Script da Ligação</h3>
+<strong>Abertura:</strong>
+<blockquote><em>"Bom dia, Eng. Marcos! Aqui é o [seu nome], da [empresa]. Tem 2 minutinhos?"</em></blockquote>
+<strong>Se SIM:</strong>
+<blockquote><em>"Perfeito. Estou em contato porque enviei alguns materiais nos últimos dias sobre como podemos apoiar os projetos da Construtora Horizonte, especialmente em [citar o desafio mencionado no 1º contato]. Queria entender: isso ainda faz sentido para vocês no momento?"</em></blockquote>
+<strong>Se mencionar objeção de tempo/prioridade:</strong>
+<blockquote><em>"Entendo perfeitamente, Eng. Marcos. Justamente por isso, proponho uma conversa enxuta de 30 minutos — sem apresentação genérica, foco total na realidade da Horizonte. Quando seria melhor para o senhor, essa semana ou na próxima?"</em></blockquote>
+<strong>Fechamento da ligação:</strong>
+<blockquote><em>"Ótimo! Vou confirmar por e-mail e WhatsApp. Obrigado pela atenção, Eng. Marcos!"</em></blockquote>
+<hr>
+<strong>📝 Anotações pós-ligação:</strong>
+<ul><li>[ ] Registrar no CRM</li>
+<li>[ ] Enviar confirmação da reunião imediatamente</li>
+<li>[ ] Personalizar proposta com base nos pontos levantados</li>
+</ul>
+<hr>
+<h2>✉️ TOUCHPOINT 5 — Dia 18 | E-mail (Breakup)</h2>
+<strong>Assunto:</strong> `Devo encerrar o contato, Eng. Marcos?`
+<hr>
+<blockquote>Eng. Marcos,</blockquote>
+>
+<blockquote>Tentei contato algumas vezes nas últimas semanas e imagino que sua agenda esteja muito carregada — conheço bem a rotina de quem toca obras de grande porte.</blockquote>
+>
+<blockquote>Não quero ser mais um fornecedor que insiste sem agregar valor, então vou ser direto:</blockquote>
+>
+<blockquote><strong>Se o momento não for o certo agora, sem problema algum.</strong> Basta me responder com um simples "não é agora" e eu respeito completamente.</blockquote>
+>
+<blockquote>Mas se ainda houver algum interesse em entender como podemos ajudar a Construtora Horizonte a [citar o principal benefício — ex: reduzir custos, evitar atrasos, melhorar qualidade no acabamento], estou à disposição para uma conversa rápida.</blockquote>
+>
+<blockquote>📅 Minha agenda está aberta. É só responder este e-mail ou me chamar no WhatsApp: <strong>[número]</strong>.</blockquote>
+>
+<blockquote>Obrigado pelo seu tempo até aqui, Eng. Marcos.</blockquote>
+>
+<blockquote>Abraço,</blockquote>
+<blockquote><strong>[Seu nome | Cargo | Empresa]</strong></blockquote>
+<hr>
+<h2>⚙️ Dicas de Execução</h2>
+<blockquote>💡 <strong>Personalização é tudo:</strong> mencione o nome do empreendimento, a região ou o tipo de obra sempre que possível.</blockquote>
+<blockquote>📊 <strong>Registre tudo no CRM:</strong> cada touchpoint deve ter data, canal e resposta anotados.</blockquote>
+<blockquote>🔄 <strong>Resposta = nova cadência:</strong> se o Eng. Marcos responder em qualquer ponto, saia da cadência automática e personalize o próximo passo.</blockquote>
+<blockquote>⏰ <strong>Melhor horário para e-mail:</strong> 07h–08h30 ou 17h–18h (fora do horário de obra)</blockquote>
+<blockquote>📱 <strong>WhatsApp:</strong> use apenas em horário comercial e com tom respeitoso — engenheiros valorizam objetividade.</blockquote>
+<hr>
+<em>Cadência desenvolvida para ciclo de vendas B2B — Construção Civil</em>
+<em>Adapte os dados de case e benefícios conforme seu portfólio real.</em></div></div>
+    </div>
+
+    <div class="demo-panel" id="panel-conteudo">
+      <div class="status-badge"><div class="dot"></div> IA executando ao vivo</div>
+      <div class="typing-container"><div class="typing-text"><h1>📅 Calendário Editorial — Argamassa Alphaville</h1>
+<h3>Instagram | 2 Semanas | Posicionamento Técnico</h3>
+<strong>Público-alvo:</strong> Engenheiros, Arquitetos e Mestres de Obras
+<hr>
+<h2>🎯 Pilares Estratégicos</h2>
+<p>| Pilar | Objetivo |
+|---|---|
+| 🔬 <strong>Técnico</strong> | Autoridade e credibilidade |
+| ⚠️ <strong>Problema/Solução</strong> | Dor do público → produto como resposta |
+| 🏗️ <strong>Bastidores</strong> | Prova social e processo |
+| 📐 <strong>Educacional</strong> | Retenção e salvamentos |
+| 🤝 <strong>Comunidade</strong> | Engajamento e proximidade |</p>
+<hr>
+<h2>📆 SEMANA 1</h2>
+<hr>
+<h3><strong>Segunda-feira — Dia 1</strong></h3>
+| Item | Detalhe |
+|---|---|
+| 🏷️ <strong>Tema</strong> | Tipos de argamassa e suas aplicações corretas |
+| 📸 <strong>Tipo de Post</strong> | Carrossel educativo (6 slides) |
+| 🪝 <strong>Gancho</strong> | <em>"Você está usando o tipo certo de argamassa? Erro aqui causa retrabalho e prejuízo na obra."</em> |
+| 💡 <strong>CTA</strong> | Salve esse post para consultar na obra |
+<hr>
+<h3><strong>Terça-feira — Dia 2</strong></h3>
+| Item | Detalhe |
+|---|---|
+| 🏷️ <strong>Tema</strong> | Erro comum: traço errado na argamassa de assentamento |
+| 📸 <strong>Tipo de Post</strong> | Reels curto (30s) — antes/depois visual |
+| 🪝 <strong>Gancho</strong> | <em>"Esse erro silencioso está destruindo as paredes da sua obra. Veja como identificar."</em> |
+| 💡 <strong>CTA</strong> | Comenta aqui se já viu isso acontecer |
+<hr>
+<h3><strong>Quarta-feira — Dia 3</strong></h3>
+| Item | Detalhe |
+|---|---|
+| 🏷️ <strong>Tema</strong> | Dica técnica: cura da argamassa em dias quentes |
+| 📸 <strong>Tipo de Post</strong> | Post estático com infográfico técnico |
+| 🪝 <strong>Gancho</strong> | <em>"Temperatura acima de 30°C pode comprometer tudo. Veja o protocolo correto de cura."</em> |
+| 💡 <strong>CTA</strong> | Salve e compartilhe com seu mestre de obras |
+<hr>
+<h3><strong>Quinta-feira — Dia 4</strong></h3>
+| Item | Detalhe |
+|---|---|
+| 🏷️ <strong>Tema</strong> | Bastidores: processo de fabricação / controle de qualidade Alphaville |
+| 📸 <strong>Tipo de Post</strong> | Reels (45s) — tour pela fábrica ou processo produtivo |
+| 🪝 <strong>Gancho</strong> | <em>"Você sabe o que garante a consistência de cada saco de argamassa que chega na sua obra?"</em> |
+| 💡 <strong>CTA</strong> | Marca aquele engenheiro que exige qualidade |
+<hr>
+<h3><strong>Sexta-feira — Dia 5</strong></h3>
+| Item | Detalhe |
+|---|---|
+| 🏷️ <strong>Tema</strong> | Comparativo técnico: argamassa industrializada x traço convencional |
+| 📸 <strong>Tipo de Post</strong> | Carrossel (5 slides) com dados e tabela comparativa |
+| 🪝 <strong>Gancho</strong> | <em>"Ainda misturando na obra? Compare os números antes de decidir."</em> |
+| 💡 <strong>CTA</strong> | Qual você usa? Comenta aqui 👇 |
+<hr>
+<h3><strong>Sábado — Dia 6</strong></h3>
+| Item | Detalhe |
+|---|---|
+| 🏷️ <strong>Tema</strong> | Enquete técnica: maior desafio com argamassa em obra |
+| 📸 <strong>Tipo de Post</strong> | Stories interativos (enquete + caixa de perguntas) |
+| 🪝 <strong>Gancho</strong> | <em>"Fissura, descolamento ou consumo excessivo? Qual é o seu maior problema hoje?"</em> |
+| 💡 <strong>CTA</strong> | Responde nos stories — sua dúvida pode virar conteúdo |
+<hr>
+<h3><strong>Domingo — Dia 7</strong></h3>
+| Item | Detalhe |
+|---|---|
+| 🏷️ <strong>Tema</strong> | Frase técnica de impacto + dado do setor |
+| 📸 <strong>Tipo de Post</strong> | Post estático minimalista (citação) |
+| 🪝 <strong>Gancho</strong> | <em>"'Obra barata sai cara duas vezes.' — E começa pela escolha errada do material."</em> |
+| 💡 <strong>CTA</strong> | Salve e manda pro seu cliente que pechincha demais 😅 |
+<hr>
+<h2>📆 SEMANA 2</h2>
+<hr>
+<h3><strong>Segunda-feira — Dia 8</strong></h3>
+| Item | Detalhe |
+|---|---|
+| 🏷️ <strong>Tema</strong> | Como calcular o consumo de argamassa por m² |
+| 📸 <strong>Tipo de Post</strong> | Carrossel técnico com fórmula + exemplo prático |
+| 🪝 <strong>Gancho</strong> | <em>"Quantos sacos você vai precisar? Para de chutar e aprende a calcular em 3 passos."</em> |
+| 💡 <strong>CTA</strong> | Salve esse carrossel — vai te economizar tempo e dinheiro |
+<hr>
+<h3><strong>Terça-feira — Dia 9</strong></h3>
+| Item | Detalhe |
+|---|---|
+| 🏷️ <strong>Tema</strong> | Problema real: fissuras por retração — causas e prevenção |
+| 📸 <strong>Tipo de Post</strong> | Reels (40s) com imagens reais de patologia |
+| 🪝 <strong>Gancho</strong> | <em>"Aquelas fissuras no reboco não são normais. Veja o que está causando e como evitar."</em> |
+| 💡 <strong>CTA</strong> | Comenta: você já teve esse problema em obra? |
+<hr>
+<h3><strong>Quarta-feira — Dia 10</strong></h3>
+| Item | Detalhe |
+|---|---|
+| 🏷️ <strong>Tema</strong> | Passo a passo técnico: preparo correto da superfície antes de aplicar argamassa |
+| 📸 <strong>Tipo de Post</strong> | Carrossel didático (7 slides com fotos de processo) |
+| 🪝 <strong>Gancho</strong> | <em>"A aplicação começa antes de abrir o saco. Veja o passo a passo que a maioria pula."</em> |
+| 💡 <strong>CTA</strong> | Salve e repassa pro seu mestre de obras |
+<hr>
+<h3><strong>Quinta-feira — Dia 11</strong></h3>
+| Item | Detalhe |
+|---|---|
+| 🏷️ <strong>Tema</strong> | Case de obra: resultado com produto Alphaville (prova social) |
+| 📸 <strong>Tipo de Post</strong> | Post estático ou Reels com depoimento de engenheiro/cliente |
+| 🪝 <strong>Gancho</strong> | <em>"Obra em [cidade/tipo]: veja o resultado de quem escolheu qualidade técnica desde o início."</em> |
+| 💡 <strong>CTA</strong> | Marca um colega engenheiro que precisa ver isso |
+<hr>
+<h3><strong>Sexta-feira — Dia 12</strong></h3>
+| Item | Detalhe |
+|---|---|
+| 🏷️ <strong>Tema</strong> | Especificação técnica: quando usar argamassa AC1, AC2 e AC3 |
+| 📸 <strong>Tipo de Post</strong> | Infográfico técnico (post estático) baseado na NBR 14081 |
+| 🪝 <strong>Gancho</strong> | <em>"Especificou errado o tipo de AC? O revestimento vai embora junto. Veja a tabela correta."</em> |
+| 💡 <strong>CTA</strong> | Salve para sua próxima especificação de projeto |
+<hr>
+<h3><strong>Sábado — Dia 13</strong></h3>
+| Item | Detalhe |
+|---|---|
+| 🏷️ <strong>Tema</strong> | Lives/interação: resposta às dúvidas da semana |
+| 📸 <strong>Tipo de Post</strong> | Stories com respostas técnicas + caixa de novas perguntas |
+| 🪝 <strong>Gancho</strong> | <em>"Vocês perguntaram, a gente responde. Dúvidas técnicas da semana com resposta de especialista."</em> |
+| 💡 <strong>CTA</strong> | Manda sua próxima dúvida aqui 👇 |
+<hr>
+<h3><strong>Domingo — Dia 14</strong></h3>
+| Item | Detalhe |
+|---|---|
+| 🏷️ <strong>Tema</strong> | Checklist: 7 pontos de controle de qualidade na aplicação de argamassa |
+| 📸 <strong>Tipo de Post</strong> | Carrossel final (fechamento de ciclo editorial) |
+| 🪝 <strong>Gancho</strong> | <em>"Antes de liberar o serviço, seu mestre de obras passou por esses 7 pontos? Printa e usa."</em> |
+| 💡 <strong>CTA</strong> | Salve, imprima e cole no canteiro de obras ✅ |
+<hr>
+<h2>📊 Resumo Visual das 2 Semanas</h2>
+<p>| Formato | Qtd | Objetivo Principal |
+|---|---|---|
+| 🎠 Carrossel | 6 | Educação + Salvamentos |
+| 🎬 Reels | 4 | Alcance + Novos seguidores |
+| 🖼️ Post Estático | 3 | Autoridade + Compartilhamento |
+| 📲 Stories | 2 | Engajamento + Comunidade |</p>
+<hr>
+<h2>🔖 Hashtags Sugeridas por Pilar</h2>
+<p>```
+#técnico → #argamassa #construçãocivil #engenharianaprática #NBR
+#produto → #argamassaalphaville #qualidadeemobra #construção
+#comunidade → #mestredeobras #engenheirocivil #arquitetura
+```</p>
+<hr>
+<blockquote>💡 <strong>Recomendação estratégica:</strong> Poste carrosséis nas segundas e quartas (pico de salvamentos), Reels nas terças e quintas (pico de alcance) e use Stories aos sábados para manter a comunidade aquecida durante o fim de semana.</blockquote></div></div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+const headers = {
+  prospect:  ['🎯', 'Perfil de Prospect', 'A IA analisou a construtora e entregou o plano completo de abordagem'],
+  pipeline:  ['🔄', 'Pipeline Completo', '3 agentes trabalharam em sequência: Pesquisa → Análise → Proposta'],
+  objecao:   ['💬', 'Tratamento de Objeção', 'Respostas prontas para quando o cliente diz que o produto é caro'],
+  instagram: ['📸', 'Post para Instagram', 'Legenda completa, 30 hashtags e direção de arte gerados pela IA'],
+  cadencia:  ['📲', 'Cadência de WhatsApp', '5 mensagens de follow-up prontas para copiar e enviar'],
+  conteudo:  ['📅', 'Plano de Conteúdo', 'Calendário editorial de 2 semanas, post a post, pronto para executar'],
+};
+function show(id, btn) {
+  document.querySelectorAll('.demo-panel').forEach(p => p.classList.remove('visible'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('panel-' + id).classList.add('visible');
+  btn.classList.add('active');
+  const [icon, title, desc] = headers[id];
+  document.getElementById('header').innerHTML =
+    '<div class="header-icon">' + icon + '</div><div><div class="header-title">' + title + '</div><div class="header-desc">' + desc + '</div></div>';
+}
+</script>
+</body>
+</html>
