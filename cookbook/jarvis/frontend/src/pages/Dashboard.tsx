@@ -1,3 +1,4 @@
+import type { ElementType } from 'react'
 import {
   TrendingUp,
   TrendingDown,
@@ -35,7 +36,7 @@ interface MetricCardProps {
   value: string
   change: string
   changeType: 'positive' | 'negative' | 'neutral'
-  icon: React.ElementType
+  icon: ElementType
   iconColor: string
 }
 
@@ -90,7 +91,7 @@ interface Alert {
   title: string
   description: string
   type: 'danger' | 'warning' | 'success'
-  icon: React.ElementType
+  icon: ElementType
   time: string
 }
 

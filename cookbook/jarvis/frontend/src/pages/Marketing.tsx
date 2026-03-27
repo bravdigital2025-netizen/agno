@@ -1,3 +1,4 @@
+import type { ElementType } from 'react'
 import { Plus, MessageSquare, Instagram, Facebook, Mail, Eye, Send, Edit } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -36,7 +37,7 @@ const STATUS_LABEL: Record<Campaign['status'], string> = {
   concluida: 'Concluída',
 }
 
-const CHANNEL_ICON: Record<Campaign['channel'], React.ElementType> = {
+const CHANNEL_ICON: Record<Campaign['channel'], ElementType> = {
   whatsapp: MessageSquare,
   instagram: Instagram,
   facebook: Facebook,

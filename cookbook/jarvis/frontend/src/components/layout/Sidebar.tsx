@@ -1,3 +1,4 @@
+import type { ElementType } from 'react'
 import { NavLink } from 'react-router-dom'
 import {
   LayoutDashboard,
@@ -13,7 +14,7 @@ import { cn } from '@/lib/utils'
 
 interface NavItem {
   label: string
-  icon: React.ElementType
+  icon: ElementType
   to: string
 }
 
