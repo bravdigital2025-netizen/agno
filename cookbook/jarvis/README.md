@@ -33,7 +33,8 @@ cookbook/jarvis/
 │   ├── whatsapp_agent.py  # Customer service
 │   ├── projects_agent.py  # Project analysis + cost quotes
 │   └── reports_agent.py   # Executive reports
-└── README.md
+├── README.md
+└── TEST_LOG.md
 ```
 
 Each store (tenant) is isolated by `tenant_id` in `TenantConfig`, with its own database URL, WhatsApp credentials, and store name.
@@ -56,27 +57,17 @@ Each store (tenant) is isolated by `tenant_id` in `TenantConfig`, with its own d
 
 ### 3. Configure environment variables
 
-Copy `.env.example` and fill in your credentials:
-
 ```bash
-cp .env.example .env
-```
+export ANTHROPIC_API_KEY=sk-ant-...
+export DATABASE_URL=postgresql+psycopg://ai:ai@localhost:5532/ai
 
-Required variables:
+# Optional: WhatsApp integration (marketing and customer service agents)
+# If not set, those agents will run without WhatsApp send capabilities
+export WHATSAPP_ACCESS_TOKEN=your_access_token
+export WHATSAPP_PHONE_NUMBER_ID=your_phone_number_id
 
-```env
-# Database
-DATABASE_URL=postgresql+psycopg://ai:ai@localhost:5532/ai
-
-# Anthropic
-ANTHROPIC_API_KEY=sk-ant-...
-
-# WhatsApp (optional — required only for marketing/whatsapp agents)
-WHATSAPP_ACCESS_TOKEN=...
-WHATSAPP_PHONE_NUMBER_ID=...
-
-# Tenant
-TENANT_demo_STORE_NAME=Materiais Construção Demo
+# Optional: custom store name for the demo tenant
+export TENANT_demo_STORE_NAME="Materiais Construção Demo"
 ```
 
 ### 4. Run the demo

@@ -1,5 +1,7 @@
 """Jarvis — Agente de Marketing e Campanhas."""
 
+from typing import List, Any
+
 from agno.agent import Agent
 from agno.models.anthropic import Claude
 from agno.tools.whatsapp import WhatsAppTools
@@ -9,20 +11,24 @@ from cookbook.jarvis.config import TenantConfig
 
 def get_marketing_agent(tenant: TenantConfig) -> Agent:
     """Retorna o agente de marketing para o tenant informado."""
-    whatsapp_tools = WhatsAppTools(
-        access_token=tenant.whatsapp_token or None,
-        phone_number_id=tenant.whatsapp_phone_id or None,
-        enable_send_text_message=True,
-        enable_send_template_message=True,
-        enable_send_reply_buttons=True,
-        enable_send_list_message=True,
-    )
+    tools: List[Any] = []
+
+    if tenant.whatsapp_token and tenant.whatsapp_phone_id:
+        whatsapp_tools = WhatsAppTools(
+            access_token=tenant.whatsapp_token,
+            phone_number_id=tenant.whatsapp_phone_id,
+            enable_send_text_message=True,
+            enable_send_template_message=True,
+            enable_send_reply_buttons=True,
+            enable_send_list_message=True,
+        )
+        tools.append(whatsapp_tools)
 
     return Agent(
         name="Agente de Marketing",
         agent_id=f"marketing-agent-{tenant.tenant_id}",
         model=Claude(id="claude-sonnet-4-6"),
-        tools=[whatsapp_tools],
+        tools=tools,
         description=(
             "Você é o agente de marketing da "
             f"{tenant.store_name}, uma loja de materiais de construção. "
