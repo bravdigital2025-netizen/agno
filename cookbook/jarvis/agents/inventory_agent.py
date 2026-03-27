@@ -1,21 +1,55 @@
 """Jarvis — Agente de Controle de Estoque."""
 
 from agno.agent import Agent
+from agno.db.postgres import PostgresDb
+from agno.knowledge.knowledge import Knowledge
 from agno.models.anthropic import Claude
 from agno.tools.sql import SQLTools
+from agno.vectordb.pgvector import PgVector
 
 from cookbook.jarvis.config import TenantConfig
 
 
+def _build_product_knowledge(tenant: TenantConfig) -> Knowledge:
+    """Cria base de conhecimento de produtos da loja a partir do banco."""
+    db = PostgresDb(
+        id=f"inventory-knowledge-db-{tenant.tenant_id}",
+        db_url=tenant.db_url,
+    )
+    vector_db = PgVector(
+        db_url=tenant.db_url,
+        table_name=f"jarvis_product_vectors_{tenant.tenant_id}",
+    )
+    return Knowledge(
+        name=f"Catalogo de Produtos — {tenant.store_name}",
+        description=(
+            "Catalogo completo de produtos da loja com especificacoes tecnicas, "
+            "unidades de medida, precos e fornecedores."
+        ),
+        contents_db=db,
+        vector_db=vector_db,
+    )
+
+
 def get_inventory_agent(tenant: TenantConfig) -> Agent:
     """Retorna o agente de controle de estoque para o tenant informado."""
+    db = PostgresDb(
+        id=f"inventory-agent-db-{tenant.tenant_id}",
+        db_url=tenant.db_url,
+    )
+    knowledge = _build_product_knowledge(tenant)
+
     return Agent(
         name="Agente de Estoque",
         agent_id=f"inventory-agent-{tenant.tenant_id}",
         model=Claude(id="claude-sonnet-4-6"),
-        tools=[
-            SQLTools(db_url=tenant.db_url),
-        ],
+        db=db,
+        knowledge=knowledge,
+        tools=[SQLTools(db_url=tenant.db_url)],
+        update_memory_on_run=True,
+        add_history_to_context=True,
+        num_history_runs=5,
+        enable_session_summaries=True,
         description=(
             "Você é o agente de controle de estoque da "
             f"{tenant.store_name}, uma loja de materiais de construção. "

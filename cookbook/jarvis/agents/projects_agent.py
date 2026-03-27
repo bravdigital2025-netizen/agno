@@ -51,10 +51,21 @@ class ProjectQuote(BaseModel):
 
 def get_projects_agent(tenant: TenantConfig) -> Agent:
     """Retorna o agente de análise de projetos para o tenant informado."""
+    from agno.db.postgres import PostgresDb
+
+    db = PostgresDb(
+        id=f"projects-agent-db-{tenant.tenant_id}",
+        db_url=tenant.db_url,
+    )
     return Agent(
         name="Agente de Projetos",
         agent_id=f"projects-agent-{tenant.tenant_id}",
         model=Claude(id="claude-sonnet-4-6"),
+        db=db,
+        update_memory_on_run=True,
+        add_history_to_context=True,
+        num_history_runs=5,
+        enable_session_summaries=True,
         description=(
             "Você é o especialista em análise de projetos de obras da "
             f"{tenant.store_name}, uma loja de materiais de construção. "

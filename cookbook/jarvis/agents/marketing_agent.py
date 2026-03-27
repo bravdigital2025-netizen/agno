@@ -1,8 +1,9 @@
 """Jarvis — Agente de Marketing e Campanhas."""
 
-from typing import List, Any
+from typing import Any, List
 
 from agno.agent import Agent
+from agno.db.postgres import PostgresDb
 from agno.models.anthropic import Claude
 from agno.tools.whatsapp import WhatsAppTools
 
@@ -11,6 +12,10 @@ from cookbook.jarvis.config import TenantConfig
 
 def get_marketing_agent(tenant: TenantConfig) -> Agent:
     """Retorna o agente de marketing para o tenant informado."""
+    db = PostgresDb(
+        id=f"marketing-agent-db-{tenant.tenant_id}",
+        db_url=tenant.db_url,
+    )
     tools: List[Any] = []
 
     if tenant.whatsapp_token and tenant.whatsapp_phone_id:
@@ -28,7 +33,12 @@ def get_marketing_agent(tenant: TenantConfig) -> Agent:
         name="Agente de Marketing",
         agent_id=f"marketing-agent-{tenant.tenant_id}",
         model=Claude(id="claude-sonnet-4-6"),
+        db=db,
         tools=tools,
+        update_memory_on_run=True,
+        add_history_to_context=True,
+        num_history_runs=5,
+        enable_session_summaries=True,
         description=(
             "Você é o agente de marketing da "
             f"{tenant.store_name}, uma loja de materiais de construção. "
