@@ -10,10 +10,28 @@ Instructions for Claude Code when working on this codebase.
 .
 ├── libs/agno/agno/          # Core framework code
 ├── cookbook/                # Examples, patterns and test cases (organized by topic)
+├── brav_digital/            # Brav Digital projects (separate from generic cookbooks)
 ├── scripts/                 # Development and build scripts
 ├── specs/                   # Design documents (symlinked, private)
 ├── docs/                    # Documentation (symlinked, private)
 └── .cursorrules             # Coding patterns and conventions
+```
+
+---
+
+## Brav Digital Projects
+
+All Brav Digital production projects live in `brav_digital/` — **never** mix them with the generic `cookbook/` examples.
+
+| Project | Path | Description |
+|---------|------|-------------|
+| Jarvis | `brav_digital/jarvis/` | AI OS for construction material stores |
+
+See `brav_digital/PROJECTS.md` for full project registry and status.
+
+**Running a Brav Digital project:**
+```bash
+.venvs/demo/bin/python brav_digital/<project>/<file>.py
 ```
 
 ---
